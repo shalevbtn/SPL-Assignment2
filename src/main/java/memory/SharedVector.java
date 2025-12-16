@@ -9,22 +9,33 @@ public class SharedVector {
     private ReadWriteLock lock = new java.util.concurrent.locks.ReentrantReadWriteLock();
 
     public SharedVector(double[] vector, VectorOrientation orientation) {
-        // TODO: store vector data and its orientation
+        this.vector = vector;
+        this.orientation = orientation;
     }
 
+    /**
+     * @param index position in the vector
+     * @return element at index
+     */
     public double get(int index) {
-        // TODO: return element at index (read-locked)
-        return 0;
+        lock.writeLock().lock();
+        try {
+            return vector[index];
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
+    /**
+     * @return length of the vector
+     */
     public int length() {
-        // TODO: return vector length
-        return 0;
+        return vector.length;
     }
+
 
     public VectorOrientation getOrientation() {
-        // TODO: return vector orientation
-        return null;
+        return orientation;
     }
 
     public void writeLock() {
@@ -44,23 +55,47 @@ public class SharedVector {
     }
 
     public void transpose() {
-        // TODO: transpose vector
+        if(this.orientation.equals(VectorOrientation.ROW_MAJOR)) {
+            this.orientation = VectorOrientation.COLUMN_MAJOR;
+        }
+        else {
+            this.orientation = VectorOrientation.ROW_MAJOR;
+        }
     }
 
     public void add(SharedVector other) {
-        // TODO: add two vectors
+                if (!this.orientation.equals(other.orientation)) { throw new IllegalArgumentException("Illegal operation: dimensions mismatch"); } 
+
+
+        for (int i = 0; i < vector.length; i++) {
+            vector[i] += other.vector[i];
+        }
     }
 
     public void negate() {
-        // TODO: negate vector
+        for (int i = 0; i < vector.length; i++) {
+            vector[i] = -vector[i];
+        }
     }
 
     public double dot(SharedVector other) {
-        // TODO: compute dot product (row · column)
-        return 0;
+        if (this.orientation.equals(other.orientation)) { throw new IllegalArgumentException("Illegal operation: dimensions mismatch"); } 
+            
+
+        double sum = 0;
+
+        for (int i = 0; i < vector.length; i++) {
+            sum += vector[i] * other.vector[i];
+        }
+        
+        return sum;
     }
 
     public void vecMatMul(SharedMatrix matrix) {
-        // TODO: compute row-vector × matrix
+
+        for(int i = 0; i < matrix.length(); i++) {
+            SharedVector currRow = matrix.get(i);
+            currRow.dot(this);
+        }
     }
 }
