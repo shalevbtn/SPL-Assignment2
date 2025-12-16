@@ -92,6 +92,7 @@ public class SharedVector {
     }
 
     public void vecMatMul(SharedMatrix matrix) {
+        
 
         for(int i = 0; i < matrix.length(); i++) {
             SharedVector currRow = matrix.get(i);
