@@ -14,6 +14,10 @@ public class TiredExecutor {
     public TiredExecutor(int numThreads) {
         // TODO
         workers = null; // placeholder
+        /*
+        for(int i = 0; i < numThreads; i++) {
+            workers = new TiredThread();
+        }*/
     }
 
     public void submit(Runnable task) {
