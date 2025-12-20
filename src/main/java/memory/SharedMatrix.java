@@ -1,7 +1,5 @@
 package memory;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class SharedMatrix {
 
     private volatile SharedVector[] vectors = {}; // underlying vectors
