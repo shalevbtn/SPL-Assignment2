@@ -15,15 +15,15 @@ public class SharedVectorTest {
 
     @Test
     void testGetSuccess() {
-        assertEquals(1.0, v.get(0), 0.001);
-        assertEquals(2.0, v.get(1), 0.001);
-        assertEquals(3.0, v.get(2), 0.001);
+        assertEquals(1.0, v.get(0));
+        assertEquals(2.0, v.get(1));
+        assertEquals(3.0, v.get(2));
 
         v.add(v);
 
-        assertEquals(2.0, v.get(0), 0.001);
-        assertEquals(4.0, v.get(1), 0.001);
-        assertEquals(6.0, v.get(2), 0.001);
+        assertEquals(2.0, v.get(0));
+        assertEquals(4.0, v.get(1));
+        assertEquals(6.0, v.get(2));
     }
 
     @Test
