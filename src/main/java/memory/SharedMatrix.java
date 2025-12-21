@@ -69,13 +69,10 @@ public class SharedMatrix {
     }
 
     public SharedVector get(int index) {
-        vectors[index].readLock();
-        try {
             return vectors[index];
-        } finally { vectors[index].readUnlock(); }
     }
 
-    public int length() { //toCheck
+    public int length() {
         return vectors.length;
     }
 
@@ -89,7 +86,7 @@ public class SharedMatrix {
         } finally { vectors[0].readUnlock(); }
 }
 
-    private void acquireAllVectorReadLocks(SharedVector[] vecs) {
+    private void acquireAllVectorReadLocks(SharedVector[] vecs) { // sort if dead lock
         // TODO: acquire read lock for each vector
         if (vecs != null) {
             for (SharedVector v : vecs)
