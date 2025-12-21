@@ -19,24 +19,35 @@ public class SharedMatrixTest {
     void loadRowMajorTest(){
         matrix.loadRowMajor(arg);
 
-        assertEquals(1.0, matrix.get(1).get(1));
-        assertEquals(2.0, matrix.get(1).get(2));
-        assertEquals(5.0, matrix.get(2).get(1));
-        assertEquals(6.0, matrix.get(2).get(2));
-        assertEquals(8.0, matrix.get(3).get(1));
-        assertEquals(9.0, matrix.get(3).get(2));
+        assertEquals(1.0, matrix.get(0).get(0));
+        assertEquals(2.0, matrix.get(0).get(1));
+        assertEquals(5.0, matrix.get(1).get(0));
+        assertEquals(6.0, matrix.get(1).get(1));
+        assertEquals(8.0, matrix.get(2).get(0));
+        assertEquals(9.0, matrix.get(2).get(1));
     }
 
     @Test
     void loadColMajorTest(){
         matrix.loadColumnMajor(arg);
 
-        assertEquals(1.0, matrix.get(1).get(1));
-        assertEquals(5.0, matrix.get(1).get(2));
-        assertEquals(8.0, matrix.get(1).get(3));
-        assertEquals(2.0, matrix.get(2).get(1));
-        assertEquals(6.0, matrix.get(2).get(2));
-        assertEquals(9.0, matrix.get(2).get(3));
+        assertEquals(1.0, matrix.get(0).get(0));
+        assertEquals(5.0, matrix.get(0).get(1));
+        assertEquals(8.0, matrix.get(0).get(2));
+        assertEquals(2.0, matrix.get(1).get(0));
+        assertEquals(6.0, matrix.get(1).get(1));
+        assertEquals(9.0, matrix.get(1).get(2));
+    }
+
+    @Test
+    void readRowMajorTest(){
+        matrix.loadRowMajor(arg);
+
+        for (int i=0; i<arg.length; i++){
+            for(int j=0; j<arg[i].length; j++){
+                assertEquals(arg[i][j],matrix.readRowMajor()[i][j]);
+            }
+        }
 
     }
 }
