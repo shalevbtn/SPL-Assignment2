@@ -22,11 +22,20 @@ public class TiredExecutor {
     }
 
     public void submit(Runnable task) {
-        while(idleMinHeap.isEmpty()) { /*wait */ }
-        
+        if (task == null) {
+            throw new NullPointerException();
+        }
+        while(idleMinHeap.isEmpty()) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         TiredThread currT = idleMinHeap.remove();
         currT.newTask(task);
-        currT.run();
+        currT.start();
+        this.inFlight.incrementAndGet();
     }
 
     public void submitAll(Iterable<Runnable> tasks) {

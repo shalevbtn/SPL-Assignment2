@@ -58,27 +58,33 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
     public void newTask(Runnable task) {
         if (handoff.size() == 1)
             throw new IllegalStateException("TiredThread is already busy");
-
         handoff.add(task);
-        
     }
 
     /**
      * Request this worker to stop after finishing current task.
      * Inserts a poison pill so the worker wakes up and exits.
      */
-    public void shutdown() { // TO CHECK
-        // Need to insert poison pill
+    public void shutdown() {
         alive.set(false);
+        handoff.add(POISON_PILL);
     }
 
     @Override
     public void run() {
-        alive.set(true);
+        busy.set(true);
+        long startTime = System.nanoTime();
+        this.timeIdle.set(this.timeIdle.get() + startTime - this.idleStartTime.get());
 
-        long start = System.nanoTime();
-        //somework
-        this.timeUsed.set(this.timeUsed.get() + System.nanoTime() - start);
+        handoff.remove().run();
+
+        this.timeUsed.set(this.timeUsed.get() + System.nanoTime() - startTime);
+        this.idleStartTime.set(System.nanoTime());
+        busy.set(false);
+        if (!alive.get()){
+            alive.set(true);
+            this.start();
+        }
     }
 
     @Override
