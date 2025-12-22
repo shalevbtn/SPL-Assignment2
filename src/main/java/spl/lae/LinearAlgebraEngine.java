@@ -35,24 +35,25 @@ public class LinearAlgebraEngine {
         leftMatrix.loadRowMajor(node.getChildren().get(0).getMatrix());
         rightMatrix.loadRowMajor(node.getChildren().get(1).getMatrix());
 
-        switch (node.getNodeType()) {
+        ComputationNodeType type = node.getNodeType();
+        switch (type) {
             case ADD:
         // handle addition
         break;
 
-    case MULTIPLY:
-        // handle multiplication
-        break;
+        case MULTIPLY:
+            // handle multiplication
+            break;
 
-    case NEGATE:
-        // handle negation
-        break;
+        case NEGATE:
+            // handle negation
+            break;
 
-    case TRANSPOSE:
-        // handle transpose
-        break;
-    default:
-        throw new IllegalStateException("Unexpected type: " + type);
+        case TRANSPOSE:
+            // handle transpose
+            break;
+        default:
+            throw new IllegalStateException("Unexpected type: " + type);
         }
 
     }
