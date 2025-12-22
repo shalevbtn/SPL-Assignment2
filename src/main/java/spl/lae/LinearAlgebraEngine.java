@@ -26,7 +26,7 @@ public class LinearAlgebraEngine {
             
         }
         loadAndCompute(computationRoot);
-        return null;
+        return computationRoot;
     }
 
     public void loadAndCompute(ComputationNode node) {
