@@ -18,7 +18,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
     private final BlockingQueue<Runnable> handoff = new ArrayBlockingQueue<>(1);
 
     private final AtomicBoolean busy = new AtomicBoolean(false); // Indicates if the worker is currently executing a task
-
+    
     private final AtomicLong timeUsed = new AtomicLong(0); // Total time spent executing tasks
     private final AtomicLong timeIdle = new AtomicLong(0); // Total time spent idle
     private final AtomicLong idleStartTime = new AtomicLong(0); // Timestamp when the worker became idle
@@ -58,6 +58,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
     public void newTask(Runnable task) {
         if (handoff.size() == 1)
             throw new IllegalStateException("TiredThread is already busy");
+        
         handoff.add(task);
     }
 
@@ -66,8 +67,8 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      * Inserts a poison pill so the worker wakes up and exits.
      */
     public void shutdown() {
-        alive.set(false);
         handoff.add(POISON_PILL);
+        alive.set(false);
     }
 
     @Override
@@ -80,10 +81,11 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
 
         this.timeUsed.set(this.timeUsed.get() + System.nanoTime() - startTime);
         this.idleStartTime.set(System.nanoTime());
+
         busy.set(false);
         if (!alive.get()){
             alive.set(true);
-            this.start();
+            handoff.remove().run();
         }
     }
 
