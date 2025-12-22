@@ -76,7 +76,7 @@ public class SharedVector {
 
     public void add(SharedVector other) {
         if (!this.orientation.equals(other.orientation) || vector.length != other.length()) {
-            throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
+            throw new ArithmeticException("Illegal operation: dimensions mismatch");
         }
         writeLock();
         try
@@ -99,7 +99,7 @@ public class SharedVector {
 
     public double dot(SharedVector other) {
         if (this.orientation.equals(other.orientation) || vector.length != other.length()) {
-            throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
+            throw new ArithmeticException("Illegal operation: dimensions mismatch");
         }    
 
         double sum = 0;
@@ -118,7 +118,7 @@ public class SharedVector {
 
     public void vecMatMul(SharedMatrix matrix) {
         if(this.orientation == VectorOrientation.COLUMN_MAJOR) {
-            throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
+            throw new ArithmeticException("Illegal operation: dimensions mismatch");
         }
 
         if(matrix.length() == 0) { return; }
@@ -126,11 +126,11 @@ public class SharedVector {
         SharedVector fstVecotr = matrix.get(0);
 
         if(fstVecotr.orientation == VectorOrientation.ROW_MAJOR) {
-            throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
+            throw new ArithmeticException("Illegal operation: dimensions mismatch");
         }
 
         if(length() != fstVecotr.length()) {
-            throw new IllegalArgumentException("Illegal operation: dimensions mismatch");
+            throw new ArithmeticException("Illegal operation: dimensions mismatch");
         }
 
          double[] result = new double[length()];

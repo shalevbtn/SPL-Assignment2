@@ -33,34 +33,44 @@ public class LinearAlgebraEngine {
         // TODO: load operand matrices
         // TODO: create compute tasks & submit tasks to executor
         leftMatrix.loadRowMajor(node.getChildren().get(0).getMatrix());
-        rightMatrix.loadRowMajor(node.getChildren().get(1).getMatrix());
 
         ComputationNodeType type = node.getNodeType();
         switch (type) {
             case ADD:
-        // handle addition
-        break;
+                rightMatrix.loadRowMajor(node.getChildren().get(1).getMatrix());
+                if (leftMatrix.length() != rightMatrix.length()) {
+                    throw new ArithmeticException();
+                }
+                executor.submitAll(createAddTasks());
+                break;
 
-        case MULTIPLY:
-            // handle multiplication
-            break;
+            case MULTIPLY:
+                rightMatrix.loadColumnMajor(node.getChildren().get(1).getMatrix());
+                executor.submitAll(createMultiplyTasks());
+                break;
 
-        case NEGATE:
-            // handle negation
-            break;
+            case NEGATE:
+                executor.submitAll(createNegateTasks());
+                break;
 
-        case TRANSPOSE:
-            // handle transpose
-            break;
-        default:
-            throw new IllegalStateException("Unexpected type: " + type);
+            case TRANSPOSE:
+                executor.submitAll(createTransposeTasks());
+                break;
+            default:
+                throw new IllegalStateException("Unexpected type: " + type);
         }
-
+        node.resolve(leftMatrix.readRowMajor());
     }
 
     public List<Runnable> createAddTasks() {
         // TODO: return tasks that perform row-wise addition
-        return null;
+        List<Runnable> tasks = new LinkedList<>();
+        for (int i = 0; i < leftMatrix.length(); i++){
+            SharedVector lv = leftMatrix.get(i);
+            SharedVector rv = rightMatrix.get(i);
+            tasks.add(()->lv.add(rv));
+        }
+        return tasks;
     }
 
     public List<Runnable> createMultiplyTasks() {
@@ -78,8 +88,8 @@ public class LinearAlgebraEngine {
     public List<Runnable> createNegateTasks() {
         List<Runnable> ret = new LinkedList<>();
 
-        for(int i = 0 ; i < rightMatrix.length(); i++) {
-            SharedVector v = rightMatrix.get(i);
+        for(int i = 0 ; i < leftMatrix.length(); i++) {
+            SharedVector v = leftMatrix.get(i);
             ret.add(() -> v.negate());
         }
 
