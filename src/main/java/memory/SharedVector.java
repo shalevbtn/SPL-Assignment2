@@ -21,7 +21,8 @@ public class SharedVector {
         readLock();
         try {
             return vector[index];
-        } finally { readUnlock(); }
+        }
+        finally { readUnlock(); }
 
     }
 
@@ -32,7 +33,8 @@ public class SharedVector {
         readLock();
         try {
             return vector.length;
-        } finally { readUnlock(); }
+        }
+        finally { readUnlock(); }
     }
 
 
@@ -40,7 +42,8 @@ public class SharedVector {
         readLock();
         try {
             return orientation;
-        } finally { readUnlock(); }
+        }
+        finally { readUnlock(); }
     }
 
     public void writeLock() {
@@ -85,7 +88,6 @@ public class SharedVector {
     }
 
     public void negate() {
-
         writeLock();
         try
         {

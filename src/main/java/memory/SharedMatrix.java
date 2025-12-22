@@ -51,7 +51,6 @@ public class SharedMatrix {
     }
 
     public double[][] readRowMajor() {
-        // TODO: return matrix contents as a row-major double[][]
         acquireAllVectorReadLocks(vectors);
         int rowNum = length();
         int columnNum = vectors[0].length();
@@ -64,12 +63,17 @@ public class SharedMatrix {
                 retMatrix[i][j] = currRow.get(j);
             }
         }
+
         releaseAllVectorReadLocks(vectors);
         return retMatrix;
     }
 
     public SharedVector get(int index) {
+        vectors[index].readLock();
+        try {
             return vectors[index];
+        }
+        finally { vectors[index].readUnlock(); }
     }
 
     public int length() {
@@ -86,8 +90,7 @@ public class SharedMatrix {
         } finally { vectors[0].readUnlock(); }
 }
 
-    private void acquireAllVectorReadLocks(SharedVector[] vecs) { // sort if dead lock
-        // TODO: acquire read lock for each vector
+    private void acquireAllVectorReadLocks(SharedVector[] vecs) {
         if (vecs != null) {
             for (SharedVector v : vecs)
                 v.readLock();
