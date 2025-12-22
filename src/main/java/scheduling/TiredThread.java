@@ -60,7 +60,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
             throw new IllegalStateException("TiredThread is already busy");
 
         handoff.add(task);
-        run(); // TO CHECK
+        
     }
 
     /**
@@ -75,7 +75,10 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
     @Override
     public void run() {
         alive.set(true);
-        start();
+
+        long start = System.nanoTime();
+        //somework
+        this.timeUsed.set(this.timeUsed.get() + System.nanoTime() - start);
     }
 
     @Override
