@@ -11,9 +11,9 @@ public class TiredExecutor {
     private final AtomicInteger inFlight = new AtomicInteger(0);
 
     public TiredExecutor(int numThreads) {
-        // TODO
         Random rand = new Random();
-        workers = new TiredThread[numThreads]; // placeholder
+        workers = new TiredThread[numThreads];
+
         for(int id = 0; id < numThreads; id++) {
             double ff = rand.nextDouble(0.5,1.5);
             workers[id] = new TiredThread(id, ff);
@@ -22,19 +22,39 @@ public class TiredExecutor {
     }
 
     public void submit(Runnable task) {
-        // TODO
+        while(idleMinHeap.isEmpty()) { /*wait */ }
+        
+        TiredThread currT = idleMinHeap.remove();
+        currT.newTask(task);
+        currT.run();
     }
 
     public void submitAll(Iterable<Runnable> tasks) {
-        // TODO: submit tasks one by one and wait until all finish
+        for(Runnable task : tasks) {
+            submit(task);
+        }
     }
 
     public void shutdown() throws InterruptedException {
-        // TODO
+        for(TiredThread t : workers) {
+            t.shutdown();
+        }
     }
 
     public synchronized String getWorkerReport() {
-        // TODO: return readable statistics for each worker
-        return null;
+        StringBuilder report = new StringBuilder();
+
+        for (TiredThread worker : workers) {
+            report.append(String.format(
+                "Worker %d | Busy: %s | Time Used: %d ns | Time Idle: %d ns | Fatigue: %.2f%n",
+                worker.getWorkerId(),
+                worker.isBusy(),
+                worker.getTimeUsed(),
+                worker.getTimeIdle(),
+                worker.getFatigue()
+            ));
+        }
+
+        return report.toString();
     }
 }

@@ -56,31 +56,30 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      * it throws IllegalStateException.
      */
     public void newTask(Runnable task) {
-       // TODO
         if (handoff.size() == 1)
             throw new IllegalStateException("TiredThread is already busy");
+
         handoff.add(task);
-        run();
+        run(); // TO CHECK
     }
 
     /**
      * Request this worker to stop after finishing current task.
      * Inserts a poison pill so the worker wakes up and exits.
      */
-    public void shutdown() {
-       // TODO
+    public void shutdown() { // TO CHECK
+        // Need to insert poison pill
         alive.set(false);
     }
 
     @Override
     public void run() {
-       // TODO
         alive.set(true);
+        start();
     }
 
     @Override
     public int compareTo(TiredThread o) {
-        // TODO
         if (getFatigue() < o.getFatigue())
             return -1;
         return 1;
