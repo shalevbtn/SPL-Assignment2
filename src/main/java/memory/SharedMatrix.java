@@ -69,7 +69,7 @@ public class SharedMatrix {
     }
 
     public SharedVector get(int index) {
-            return vectors[index];
+        return vectors[index];
     }
 
     public int length() {
