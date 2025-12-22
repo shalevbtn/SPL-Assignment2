@@ -57,6 +57,10 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      */
     public void newTask(Runnable task) {
        // TODO
+        if (handoff.size() == 1)
+            throw new IllegalStateException("TiredThread is already busy");
+        handoff.add(task);
+        run();
     }
 
     /**
@@ -65,16 +69,20 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      */
     public void shutdown() {
        // TODO
+        alive.set(false);
     }
 
     @Override
     public void run() {
        // TODO
+        alive.set(true);
     }
 
     @Override
     public int compareTo(TiredThread o) {
         // TODO
-        return 0;
+        if (getFatigue() < o.getFatigue())
+            return -1;
+        return 1;
     }
 }

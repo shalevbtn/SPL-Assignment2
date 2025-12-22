@@ -1,8 +1,7 @@
 package scheduling;
 
+import java.util.Random;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TiredExecutor {
@@ -13,11 +12,13 @@ public class TiredExecutor {
 
     public TiredExecutor(int numThreads) {
         // TODO
-        workers = null; // placeholder
-        /*
-        for(int i = 0; i < numThreads; i++) {
-            workers = new TiredThread();
-        }*/
+        Random rand = new Random();
+        workers = new TiredThread[numThreads]; // placeholder
+        for(int id = 0; id < numThreads; id++) {
+            double ff = rand.nextDouble(0.5,1.5);
+            workers[id] = new TiredThread(id, ff);
+            idleMinHeap.add(workers[id]);
+        }
     }
 
     public void submit(Runnable task) {
