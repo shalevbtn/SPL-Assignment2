@@ -25,7 +25,6 @@ public class LinearAlgebraEngine {
             loadAndCompute(nodeToSolve);
             
         }
-        loadAndCompute(computationRoot);
         return computationRoot;
     }
 
@@ -99,8 +98,8 @@ public class LinearAlgebraEngine {
     public List<Runnable> createTransposeTasks() {
         List<Runnable> ret = new LinkedList<>();
         // TO CHECK
-        for(int i = 0 ; i < rightMatrix.length(); i++) {
-            SharedVector v = rightMatrix.get(i);
+        for(int i = 0 ; i < leftMatrix.length(); i++) {
+            SharedVector v = leftMatrix.get(i);
             ret.add(() -> v.transpose());
         }
 

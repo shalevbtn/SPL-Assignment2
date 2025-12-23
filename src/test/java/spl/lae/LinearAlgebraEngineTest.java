@@ -1,6 +1,5 @@
 package spl.lae;
 
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import parser.ComputationNode;
@@ -19,18 +18,22 @@ public class LinearAlgebraEngineTest {
     private ComputationNode transpose;
     private ComputationNode matrix1 = new ComputationNode(new double[][] {{1,2,3},{4,5,6}});
     private ComputationNode matrix2 = new ComputationNode(new double[][] {{1,1,1},{2,2,2}});
+    private ComputationNode matrix3 = new ComputationNode(new double[][] {{1,2},{1,2},{2,3}});
 
     @BeforeEach
     void setUp() {
-        List<ComputationNode> children1 = new ArrayList<>();
-        List<ComputationNode> children2 = new ArrayList<>();
-        children1.add(matrix1);
-        children1.add(matrix2);
-        children2.add(matrix1);
-        add = new ComputationNode("+", children1);
-        multiply = new ComputationNode("*", children1);
-        negate = new ComputationNode("-", children2);
-        transpose = new ComputationNode("T", children2);
+        List<ComputationNode> addChildren = new ArrayList<>();
+        List<ComputationNode> mulChildren = new ArrayList<>();
+        List<ComputationNode> negChildren = new ArrayList<>();
+        addChildren.add(matrix1);
+        addChildren.add(matrix2);
+        mulChildren.add(matrix1);
+        mulChildren.add(matrix3);
+        negChildren.add(matrix1);
+        add = new ComputationNode("+", addChildren);
+        multiply = new ComputationNode("*", mulChildren);
+        negate = new ComputationNode("-", negChildren);
+        transpose = new ComputationNode("T", negChildren);
     }
     @Test
     void testAdd() {
@@ -48,7 +51,7 @@ public class LinearAlgebraEngineTest {
 
     @Test
     void testMultiply() {
-        double[][] solve = new double[][] {{6,12},{15,30}};
+        double[][] solve = new double[][] {{9,15},{21,36}};
         ComputationNode root = multiply;
         lae.run(root);
         assertEquals(root.getMatrix().length, solve.length);
@@ -76,7 +79,7 @@ public class LinearAlgebraEngineTest {
 
     @Test
     void testTranspose() {
-        double[][] solve = new double[][] {{1},{2},{3}};
+        double[][] solve = new double[][] {{1,4},{2,5},{3,6}};
         ComputationNode root = transpose;
         lae.run(root);
         assertEquals(root.getMatrix().length, solve.length);
