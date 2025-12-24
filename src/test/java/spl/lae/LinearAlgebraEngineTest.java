@@ -7,11 +7,12 @@ import parser.ComputationNode;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LinearAlgebraEngineTest {
 
-    private LinearAlgebraEngine lae = new LinearAlgebraEngine(10);
+    private LinearAlgebraEngine lae = new LinearAlgebraEngine(1);
     private ComputationNode add;
     private ComputationNode multiply;
     private ComputationNode negate;
@@ -54,6 +55,7 @@ public class LinearAlgebraEngineTest {
         double[][] solve = new double[][] {{9,15},{21,36}};
         ComputationNode root = multiply;
         lae.run(root);
+
         assertEquals(root.getMatrix().length, solve.length);
         assertEquals(root.getMatrix()[0].length, solve[0].length);
         for (int i = 0; i < root.getMatrix().length; i++) {

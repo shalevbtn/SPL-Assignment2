@@ -56,9 +56,6 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      * it throws IllegalStateException.
      */
     public void newTask(Runnable task) {
-        if (handoff.size() == 1)
-            throw new IllegalStateException("TiredThread is already busy");
-        
         handoff.add(task);
     }
 
@@ -67,24 +64,34 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      * Inserts a poison pill so the worker wakes up and exits.
      */
     public void shutdown() {
-        handoff.add(POISON_PILL);
-        alive.set(false);
+        try{
+            handoff.put(POISON_PILL);
+            alive.set(false);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
-    public void run() {
-        busy.set(true);
-        long startTime = System.nanoTime();
-        this.timeIdle.set(this.timeIdle.get() + startTime - this.idleStartTime.get());
-
-        handoff.remove().run();
-
-        this.timeUsed.set(this.timeUsed.get() + System.nanoTime() - startTime);
-        this.idleStartTime.set(System.nanoTime());
-
-        busy.set(false);
-        if (!alive.get()){
-            alive.set(true);
+    public synchronized void run() {
+        while (alive.get()) {
+            try {
+                Runnable task = handoff.take();
+                busy.set(true);
+                long startTime = System.nanoTime();
+                this.timeIdle.set(this.timeIdle.get() + startTime - this.idleStartTime.get());
+                try{
+                    task.run();
+                } finally {
+                    this.timeUsed.set(this.timeUsed.get() + System.nanoTime() - startTime);
+                    this.idleStartTime.set(System.nanoTime());
+                    busy.set(false);
+                }
+            } catch (InterruptedException ex){
+                Thread.currentThread().interrupt();
+            }
+        }
+        if (!handoff.isEmpty()) {
             handoff.remove().run();
         }
     }

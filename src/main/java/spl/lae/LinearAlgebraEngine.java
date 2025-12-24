@@ -23,8 +23,10 @@ public class LinearAlgebraEngine {
         while(computationRoot.getNodeType() != ComputationNodeType.MATRIX) {
             ComputationNode nodeToSolve = computationRoot.findResolvable();
             loadAndCompute(nodeToSolve);
-            
         }
+        try{
+            executor.shutdown();
+        } catch (InterruptedException ex) {Thread.currentThread().interrupt();}
         return computationRoot;
     }
 

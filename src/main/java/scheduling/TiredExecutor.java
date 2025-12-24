@@ -4,6 +4,8 @@ import java.util.Random;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.Thread.sleep;
+
 public class TiredExecutor {
 
     private final TiredThread[] workers;
@@ -16,8 +18,10 @@ public class TiredExecutor {
 
         for(int id = 0; id < numThreads; id++) {
             double ff = rand.nextDouble(0.5,1.5);
-            workers[id] = new TiredThread(id, ff);
-            idleMinHeap.add(workers[id]);
+            TiredThread thread = new TiredThread(id, ff);
+            workers[id] = thread;
+            idleMinHeap.add(thread);
+            thread.start();
         }
     }
 
@@ -25,17 +29,22 @@ public class TiredExecutor {
         if (task == null) {
             throw new NullPointerException();
         }
-        while(idleMinHeap.isEmpty()) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        try{
+            TiredThread thread = idleMinHeap.take();
+            this.inFlight.incrementAndGet();
+            Runnable wrappedTask =
+                    ()->{
+                        try{
+                            task.run();
+                        } finally {
+                            this.inFlight.decrementAndGet();
+                            idleMinHeap.add(thread);
+                        }
+                    };
+            thread.newTask(wrappedTask);
+        } catch (InterruptedException ex){
+            Thread.currentThread().interrupt();
         }
-        TiredThread currT = idleMinHeap.remove();
-        currT.newTask(task);
-        currT.start();
-        this.inFlight.incrementAndGet();
     }
 
     public void submitAll(Iterable<Runnable> tasks) {
@@ -47,6 +56,9 @@ public class TiredExecutor {
     public void shutdown() throws InterruptedException {
         for(TiredThread t : workers) {
             t.shutdown();
+        }
+        for(TiredThread t : workers) {
+            t.join();
         }
     }
 
