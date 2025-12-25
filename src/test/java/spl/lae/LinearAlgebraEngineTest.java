@@ -14,12 +14,16 @@ public class LinearAlgebraEngineTest {
 
     private LinearAlgebraEngine lae = new LinearAlgebraEngine(1);
     private ComputationNode add;
+    private ComputationNode add2;
     private ComputationNode multiply;
     private ComputationNode negate;
     private ComputationNode transpose;
     private ComputationNode matrix1 = new ComputationNode(new double[][] {{1,2,3},{4,5,6}});
     private ComputationNode matrix2 = new ComputationNode(new double[][] {{1,1,1},{2,2,2}});
     private ComputationNode matrix3 = new ComputationNode(new double[][] {{1,2},{1,2},{2,3}});
+    private ComputationNode matrix4 = new ComputationNode(new double[][] {{1,1},{2,2}});
+    private ComputationNode matrix5 = new ComputationNode(new double[][] {{5,5,5},{8,8,8}});
+    private ComputationNode matrix6 = new ComputationNode(new double[][] {{0,1,9},{1,2,3}});
 
     @BeforeEach
     void setUp() {
@@ -84,6 +88,39 @@ public class LinearAlgebraEngineTest {
     @Test
     void testTranspose() {
         double[][] solve = new double[][] {{1,4},{2,5},{3,6}};
+        ComputationNode root = transpose;
+        lae.run(root);
+        assertEquals(root.getMatrix().length, solve.length);
+        assertEquals(root.getMatrix()[0].length, solve[0].length);
+        for (int i = 0; i < root.getMatrix().length; i++) {
+            for (int j = 0; j < root.getMatrix()[0].length; j++) {
+                assertEquals(root.getMatrix()[i][j], solve[i][j]);
+            }
+        }
+    }
+
+    @Test
+    void complexTest(){
+        List<ComputationNode> addChildren = new ArrayList<>();
+        addChildren.add(matrix1);
+        addChildren.add(matrix2);
+        addChildren.add(matrix6);
+        List<ComputationNode> multiplyChildren = new ArrayList<>();
+        multiplyChildren.add(matrix4);
+        multiplyChildren.add(matrix5);
+        add = new ComputationNode("+", addChildren);
+        multiply = new ComputationNode("*", multiplyChildren);
+        List<ComputationNode> add2Children = new ArrayList<>();
+        add2Children.add(add);
+        add2Children.add(multiply);
+        add2 = new ComputationNode("+", add2Children);
+        List<ComputationNode> negateChildren = new ArrayList<>();
+        negateChildren.add(add2);
+        negate = new ComputationNode("-", negateChildren);
+        List<ComputationNode> transposeChildren = new ArrayList<>();
+        transposeChildren.add(negate);
+        transpose = new ComputationNode("T", transposeChildren);
+        double[][] solve = new double[][] {{-15,-32},{-16,-33},{-17,-34}};
         ComputationNode root = transpose;
         lae.run(root);
         assertEquals(root.getMatrix().length, solve.length);
