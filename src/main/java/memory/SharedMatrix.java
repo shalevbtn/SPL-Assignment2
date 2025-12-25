@@ -60,7 +60,7 @@ public class SharedMatrix {
         if(get(0).getOrientation() == VectorOrientation.COLUMN_MAJOR) {
             rowNum = get(0).length();
             columnNum = length();
-            retMatrix = new double[columnNum][rowNum];
+            retMatrix = new double[rowNum][columnNum];
 
             for(int i = 0 ; i < columnNum; i++) {
                 SharedVector v = get(i);
