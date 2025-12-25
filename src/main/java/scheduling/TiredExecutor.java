@@ -57,11 +57,10 @@ public class TiredExecutor {
         for(Runnable task : tasks) {
             submit(task);
         }
-
+        
         synchronized (inFlight) {
             while (inFlight.get() > 0) {
                 try {
-                    // Wait for the last worker to call notifyAll()
                     inFlight.wait();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
