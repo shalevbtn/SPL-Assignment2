@@ -60,6 +60,7 @@ public class LinearAlgebraEngine {
             default:
                 throw new IllegalStateException("Unexpected type: " + type);
         }
+        
         node.resolve(leftMatrix.readRowMajor());
     }
 

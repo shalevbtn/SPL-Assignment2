@@ -36,11 +36,13 @@ public class LinearAlgebraEngineTest {
         negate = new ComputationNode("-", negChildren);
         transpose = new ComputationNode("T", negChildren);
     }
+
     @Test
-    void testAdd() {
+    void testAdd() throws InterruptedException {
         double[][] solve = new double[][] {{2,3,4},{6,7,8}};
         ComputationNode root = add;
         lae.run(root);
+    
         assertEquals(root.getMatrix().length, solve.length);
         assertEquals(root.getMatrix()[0].length, solve[0].length);
         for (int i = 0; i < root.getMatrix().length; i++) {

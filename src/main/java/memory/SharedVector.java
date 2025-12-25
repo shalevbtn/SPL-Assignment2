@@ -149,7 +149,7 @@ public class SharedVector {
             throw new ArithmeticException("Illegal operation: dimensions mismatch");
         }
 
-         double[] result = new double[matrix.length()];
+        double[] result = new double[matrix.length()];
 
         for(int i = 0; i < matrix.length(); i++) {
             matrix.get(i).readLock();
@@ -161,7 +161,7 @@ public class SharedVector {
         }
 
         for(int i = 0; i < matrix.length(); i++) {
-            matrix.get(i).readLock();
+            matrix.get(i).readUnlock();
         }
 
         vector = result;
