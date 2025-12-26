@@ -18,54 +18,63 @@ public class LinearAlgebraEngine {
     }
 
     public ComputationNode run(ComputationNode computationRoot) {
-        // TODO: resolve computation tree step by step until final matrix is produced
-        computationRoot.associativeNesting();
-        while(computationRoot.getNodeType() != ComputationNodeType.MATRIX) {
-            ComputationNode nodeToSolve = computationRoot.findResolvable();
-            loadAndCompute(nodeToSolve);
+        try {
+            computationRoot.associativeNesting();
+            while(computationRoot.getNodeType() != ComputationNodeType.MATRIX) {
+                ComputationNode nodeToSolve = computationRoot.findResolvable();
+                loadAndCompute(nodeToSolve);
+            }
+
+        } finally {
+            try {
+                executor.shutdown();
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
         }
-        try{
-            executor.shutdown();
-        } catch (InterruptedException ex) {Thread.currentThread().interrupt();}
         return computationRoot;
     }
 
     public void loadAndCompute(ComputationNode node) {
-        // TODO: load operand matrices
-        // TODO: create compute tasks & submit tasks to executor
+        List<Runnable> tasks;
         leftMatrix.loadRowMajor(node.getChildren().get(0).getMatrix());
+        validateMatrix(leftMatrix);
 
         ComputationNodeType type = node.getNodeType();
         switch (type) {
             case ADD:
                 rightMatrix.loadRowMajor(node.getChildren().get(1).getMatrix());
-                if (leftMatrix.length() != rightMatrix.length()) {
-                    throw new ArithmeticException();
-                }
-                executor.submitAll(createAddTasks());
+                validateMatrix(rightMatrix);
+                validateAdd();
+
+                tasks = createAddTasks();
+
                 break;
 
             case MULTIPLY:
                 rightMatrix.loadColumnMajor(node.getChildren().get(1).getMatrix());
-                executor.submitAll(createMultiplyTasks());
+                validateMatrix(rightMatrix);
+                validateDimensions();
+                
+                tasks = createMultiplyTasks();
                 break;
 
             case NEGATE:
-                executor.submitAll(createNegateTasks());
+                tasks = createNegateTasks();
                 break;
 
             case TRANSPOSE:
-                executor.submitAll(createTransposeTasks());
+                tasks = createTransposeTasks();
                 break;
             default:
                 throw new IllegalStateException("Unexpected type: " + type);
         }
         
+        executor.submitAll(tasks);
         node.resolve(leftMatrix.readRowMajor());
     }
 
     public List<Runnable> createAddTasks() {
-        // TODO: return tasks that perform row-wise addition
         List<Runnable> tasks = new LinkedList<>();
         for (int i = 0; i < leftMatrix.length(); i++){
             SharedVector lv = leftMatrix.get(i);
@@ -76,7 +85,6 @@ public class LinearAlgebraEngine {
     }
 
     public List<Runnable> createMultiplyTasks() {
-        // TODO: return tasks that perform row × matrix multiplication
         List<Runnable> ret = new LinkedList<>();
         
         for(int i = 0 ; i < leftMatrix.length(); i++) {
@@ -111,5 +119,22 @@ public class LinearAlgebraEngine {
 
     public String getWorkerReport() {
         return executor.getWorkerReport();
+    }
+
+    private void validateMatrix(SharedMatrix m) {
+        if(m.length() <= 0 || m.get(0).length() <= 0) {
+            throw new ArithmeticException("Illegal operation: dimensions mismatch");
+        }
+    }
+
+    private void validateDimensions() {
+        if (leftMatrix.get(0).length() != rightMatrix.get(0).length()) 
+            throw new ArithmeticException("Illegal operation: dimensions mismatch");
+    }
+
+    private void validateAdd() {
+        validateDimensions();
+        if(leftMatrix.length() != rightMatrix.length()) 
+            throw new ArithmeticException("Illegal operation: dimensions mismatch");
     }
 }

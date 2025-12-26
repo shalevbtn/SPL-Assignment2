@@ -4,8 +4,6 @@ import java.util.Random;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.lang.Thread.sleep;
-
 public class TiredExecutor {
 
     private final TiredThread[] workers;

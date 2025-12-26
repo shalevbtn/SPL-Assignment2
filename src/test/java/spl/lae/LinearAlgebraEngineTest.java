@@ -7,7 +7,6 @@ import parser.ComputationNode;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LinearAlgebraEngineTest {

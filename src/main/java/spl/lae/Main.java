@@ -1,11 +1,30 @@
 package spl.lae;
+
 import java.io.IOException;
 
 import parser.*;
 
 public class Main {
-  public static void main(String[] args) throws IOException {
-    LinearAlgebraEngine LAE = new LinearAlgebraEngine(0);
-    
-  }
+	public static void main(String[] args) throws IOException {
+		if (args.length != 3) {
+			System.err.println("Usage: java -jar lga.jar <threads> <input> <output>");
+            return;
+		}
+
+		int numOfThreads = Integer.parseInt(args[0]);
+		String inputPath = args[1];
+		String outputPath = args[2];
+
+		LinearAlgebraEngine LAE = new LinearAlgebraEngine(numOfThreads);
+		InputParser inputP = new InputParser();
+
+		try {
+			ComputationNode root = inputP.parse(inputPath);
+			root = LAE.run(root);
+			OutputWriter.write(root.getMatrix(), outputPath);
+
+		} catch (Exception e) {
+			OutputWriter.write(e.getMessage(), outputPath);
+		}
+	}
 }
