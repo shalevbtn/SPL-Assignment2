@@ -73,10 +73,12 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
     }
 
     @Override
-    public synchronized void run() {
-        while (alive.get()) {
+    public void run() {
+        while (true) {
             try {
                 Runnable task = handoff.take();
+                if (task == POISON_PILL) break;
+                
                 busy.set(true);
                 long startTime = System.nanoTime();
                 this.timeIdle.set(this.timeIdle.get() + startTime - this.idleStartTime.get());
@@ -98,8 +100,6 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
 
     @Override
     public int compareTo(TiredThread o) {
-        if (getFatigue() < o.getFatigue())
-            return -1;
-        return 1;
+        return Double.compare(this.getFatigue(), o.getFatigue());
     }
 }

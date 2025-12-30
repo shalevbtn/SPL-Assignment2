@@ -129,9 +129,10 @@ public class SharedVector {
     }
 
     public void vecMatMul(SharedMatrix matrix) {
-        readLock();
+        writeLock();
+
         if(this.orientation == VectorOrientation.COLUMN_MAJOR) {
-            readUnlock();
+            writeUnlock();
             throw new ArithmeticException("Illegal operation: dimensions mismatch");
         }
 
@@ -140,31 +141,31 @@ public class SharedVector {
         SharedVector fstVecotr = matrix.get(0);
 
         if(fstVecotr.orientation == VectorOrientation.ROW_MAJOR) {
-            readUnlock();
+            writeUnlock();
             throw new ArithmeticException("Illegal operation: dimensions mismatch");
         }
 
         if(length() != fstVecotr.length()) {
-            readUnlock();
+            writeUnlock();
             throw new ArithmeticException("Illegal operation: dimensions mismatch");
         }
 
         double[] result = new double[matrix.length()];
 
-        for(int i = 0; i < matrix.length(); i++) {
+        /*for(int i = 0; i < matrix.length(); i++) {
             matrix.get(i).readLock();
-        }
+        }*/
 
         for(int i = 0; i < matrix.length(); i++) {
             SharedVector currColumn = matrix.get(i);
             result[i] = this.dot(currColumn);
         }
 
-        for(int i = 0; i < matrix.length(); i++) {
+        /*for(int i = 0; i < matrix.length(); i++) {
             matrix.get(i).readUnlock();
-        }
+        }*/
 
         vector = result;
-        readUnlock();
+        writeUnlock();
     }
 }

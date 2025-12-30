@@ -87,11 +87,13 @@ public class SharedMatrix {
     }
 
     public SharedVector get(int index) {
-        vectors[index].readLock();
+        /*vectors[index].readLock();
         try {
             return vectors[index];
         }
-        finally { vectors[index].readUnlock(); }
+        finally { vectors[index].readUnlock(); }*/
+        // TO CHECK
+        return vectors[index];
     }
 
     public int length() {

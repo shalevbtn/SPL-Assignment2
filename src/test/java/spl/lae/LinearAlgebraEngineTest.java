@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LinearAlgebraEngineTest {
 
-    private LinearAlgebraEngine lae = new LinearAlgebraEngine(1);
+    private LinearAlgebraEngine lae = new LinearAlgebraEngine(3);
     private ComputationNode add;
     private ComputationNode add2;
     private ComputationNode multiply;

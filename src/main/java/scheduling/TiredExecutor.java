@@ -35,14 +35,9 @@ public class TiredExecutor {
                         try{
                             task.run();
                         } finally {
-                            /* Before:
-                            inFlight.decrementAndGet();
-                            idleMinHeap.add(thread);*/
-
                             if (inFlight.decrementAndGet() == 0) {
-                                synchronized (inFlight) { inFlight.notifyAll();}
+                                synchronized (inFlight) { inFlight.notifyAll(); }
                             }
-
                             idleMinHeap.add(thread);
                         }
                     };
