@@ -11,7 +11,6 @@ public class SharedMatrixTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize your object before every test
         matrix = new SharedMatrix();
     }
 
@@ -49,5 +48,33 @@ public class SharedMatrixTest {
             }
         }
 
+    }
+
+    @Test
+    void testDotProduct() {
+        SharedVector v1 = new SharedVector(new double[]{1, 2}, VectorOrientation.ROW_MAJOR);
+        SharedVector v2 = new SharedVector(new double[]{3, 4}, VectorOrientation.COLUMN_MAJOR);
+        assertEquals(11.0, v1.dot(v2)); // (1*3) + (2*4) = 11
+    }
+
+    @Test
+    void testNegate() {
+        SharedVector v = new SharedVector(new double[]{5, -2}, VectorOrientation.ROW_MAJOR);
+        v.negate();
+        assertEquals(-5.0, v.get(0));
+        assertEquals(2.0, v.get(1));
+    }
+
+    @Test
+    void testEmptyMatrix() {
+        SharedMatrix empty = new SharedMatrix();
+        assertEquals(0, empty.length());
+    }
+
+    @Test
+    void testSingleElement() {
+        double[][] data = {{5.0}};
+        matrix.loadRowMajor(data);
+        assertEquals(5.0, matrix.get(0).get(0));
     }
 }

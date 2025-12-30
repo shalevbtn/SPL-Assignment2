@@ -37,4 +37,20 @@ public class SharedVectorTest {
         assertEquals(VectorOrientation.COLUMN_MAJOR, v.getOrientation());
     }
 
+    @Test
+void testDimensionMismatch() {
+    SharedVector v1 = new SharedVector(new double[]{1, 2}, VectorOrientation.ROW_MAJOR);
+    SharedVector v2 = new SharedVector(new double[]{1, 2, 3}, VectorOrientation.ROW_MAJOR);
+    
+    assertThrows(ArithmeticException.class, () -> v1.add(v2));
+}
+
+@Test
+void testDotProductOrientationMismatch() {
+    SharedVector v1 = new SharedVector(new double[]{1, 2}, VectorOrientation.ROW_MAJOR);
+    SharedVector v2 = new SharedVector(new double[]{1, 2}, VectorOrientation.ROW_MAJOR);
+    
+    assertThrows(ArithmeticException.class, () -> v1.dot(v2));
+}
+
 }
