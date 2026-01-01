@@ -40,9 +40,10 @@ public class TiredExecutorTest {
         Matcher matcher = pattern.matcher(executor.getWorkerReport());
 
         while (matcher.find()) {
+
             long timeValue = Long.parseLong(matcher.group(1));
 
             assertNotEquals(timeValue, 0);
         }
-    };
+    }
 }
