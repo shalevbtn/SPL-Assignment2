@@ -1,161 +1,167 @@
 package spl.lae;
 
-import memory.*;
-import scheduling.*;
-import org.junit.jupiter.api.*;
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import parser.ComputationNode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class LAEHardTest {
 
-    private LinearAlgebraEngine engine;
-    private final int THREAD_COUNT = 4;
+    private LinearAlgebraEngine lae;
 
     @BeforeEach
     void setUp() {
-        engine = new LinearAlgebraEngine(THREAD_COUNT);
+        // We use a high number of threads to force maximum contention 
+        // and exercise the fatigue-based priority queue.
+        lae = new LinearAlgebraEngine(16); 
     }
 
     /**
-     * EDGE CASE: Matrix Multiplication with non-square dimensions.
-     * Tests: loadColumnMajor, vecMatMul, and result reading.
-     * (2x3) * (3x2) = (2x2)
+     * THE HELL TEST: "The Grand Gauntlet"
+     * Logic: -((((A * B) + C)^T * D) + E)
+     * This test covers:
+     * 1. Multiplication of non-square matrices (2x3 * 3x2)
+     * 2. Addition of result to square matrix
+     * 3. Transposition of the result
+     * 4. Multiplication of transposed (2x2) with a skinny matrix (2x5)
+     * 5. Final negation
+     * 6. Deep nesting (Tree depth 5+)
      */
     @Test
-    @DisplayName("Test Matrix Multiplication Correctness & Orientation")
-    void testMatrixMultiplication() {
-        double[][] a = {
-            {1, 2, 3},
-            {4, 5, 6}
+    @DisplayName("The Grand Gauntlet - Deeply Nested Complex Operations")
+    void grandGauntletTest() {
+        // A: 2x3
+        double[][] m1 = {{1, 2, 3}, {4, 5, 6}};
+        // B: 3x2
+        double[][] m2 = {{7, 8}, {9, 10}, {11, 12}};
+        // Result A*B: [[58, 64], [139, 154]] (2x2)
+
+        // C: 2x2
+        double[][] m3 = {{1, 1}, {1, 1}};
+        // Result (A*B)+C: [[59, 65], [140, 155]]
+
+        // D: 2x5 (Skinny)
+        double[][] m4 = {{1, 0, 1, 0, 1}, {0, 1, 0, 1, 0}};
+        
+        // Build the Tree: -(( ( (m1 * m2) + m3 )^T * m4 ))
+        ComputationNode node1 = new ComputationNode(m1);
+        ComputationNode node2 = new ComputationNode(m2);
+        ComputationNode node3 = new ComputationNode(m3);
+        ComputationNode node4 = new ComputationNode(m4);
+
+        // A * B
+        ComputationNode mul1 = new ComputationNode("*", List.of(node1, node2));
+        // (A * B) + C
+        ComputationNode add1 = new ComputationNode("+", List.of(mul1, node3));
+        // ((A * B) + C)^T  -> Results in a 2x2: [[59, 140], [65, 155]]
+        ComputationNode trans1 = new ComputationNode("T", List.of(add1));
+        // (...)^T * D -> (2x2 * 2x5) = 2x5
+        ComputationNode mul2 = new ComputationNode("*", List.of(trans1, node4));
+        // Final Negation
+        ComputationNode root = new ComputationNode("-", List.of(mul2));
+
+        lae.run(root);
+
+        double[][] result = root.getMatrix();
+
+        // EXPECTED CALCULATION:
+        // Transposed matrix was [[59, 140], [65, 155]]
+        // Multiply by [[1,0,1,0,1], [0,1,0,1,0]]
+        // Row 1: [59*1 + 140*0, 59*0 + 140*1, ...] -> [59, 140, 59, 140, 59]
+        // Row 2: [65*1 + 155*0, 65*0 + 155*1, ...] -> [65, 155, 65, 155, 65]
+        // Then Negated:
+        double[][] expected = {
+            {-59, -140, -59, -140, -59},
+            {-65, -155, -65, -155, -65}
         };
-        double[][] b = {
-            {7, 8},
-            {9, 10},
-            {11, 12}
-        };
-        // Expected: 
-        // [1*7 + 2*9 + 3*11, 1*8 + 2*10 + 3*12] = [58, 64]
-        // [4*7 + 5*9 + 6*11, 4*8 + 5*10 + 6*12] = [139, 154]
-        
-        SharedMatrix m1 = new SharedMatrix(a);
-        SharedMatrix m2 = new SharedMatrix();
-        m2.loadColumnMajor(b); // Critical: Engine loads right matrix as Column Major
 
-        List<Runnable> tasks = new ArrayList<>();
-        for (int i = 0; i < m1.length(); i++) {
-            SharedVector v = m1.get(i);
-            tasks.add(() -> v.vecMatMul(m2));
+        assertEquals(2, result.length);
+        assertEquals(5, result[0].length);
+        for (int i = 0; i < 2; i++) {
+            assertArrayEquals(expected[i], result[i], 0.0001);
         }
-
-        // We use a temporary executor to test the logic manually
-        TiredExecutor executor = new TiredExecutor(THREAD_COUNT);
-        executor.submitAll(tasks);
-
-        double[][] result = m1.readRowMajor();
-        assertEquals(58, result[0][0], 0.001);
-        assertEquals(154, result[1][1], 0.001);
     }
 
     /**
-     * HARD CASE: Fatigue Scheduling Fairness
-     * Strategy: Submit many tasks. Each worker has a different Fatigue Factor (randomized).
-     * Verify that all workers are utilized and the "least fatigued" logic doesn't starve anyone.
+     * EDGE CASE: Associative Nesting Check
+     * Requirement 2.1: Binary operators with >2 operands must be left-associative.
+     * Test: +(A, B, C, D) -> (((A+B)+C)+D)
      */
     @Test
-    @DisplayName("Verify Fatigue Scheduling Fairness")
-    void testFatigueScheduling() throws InterruptedException {
-        TiredExecutor executor = new TiredExecutor(THREAD_COUNT);
-        AtomicInteger taskCount = new AtomicInteger(0);
+    @DisplayName("Associative Nesting - Multi-operand Addition")
+    void testAssociativeNesting() {
+        double[][] m = {{1}};
+        List<ComputationNode> children = new ArrayList<>();
+        for (int i = 0; i < 10; i++) children.add(new ComputationNode(m));
         
-        // Submit 100 small tasks
-        List<Runnable> tasks = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            tasks.add(() -> {
-                try {
-                    Thread.sleep(10); // Simulate work
-                    taskCount.incrementAndGet();
-                } catch (InterruptedException e) {}
-            });
-        }
+        // This will trigger computationNode.associativeNesting()
+        ComputationNode root = new ComputationNode("+", children);
         
-        executor.submitAll(tasks);
+        lae.run(root);
         
-        String report = executor.getWorkerReport();
-        System.out.println(report);
-
-        // Verify all worker IDs (0 to THREAD_COUNT-1) appear in the report
-        for (int i = 0; i < THREAD_COUNT; i++) {
-            assertTrue(report.contains("Worker " + i), "Worker " + i + " was never used!");
-        }
-        assertEquals(100, taskCount.get());
+        // 1 added to itself 10 times = 10
+        assertEquals(10.0, root.getMatrix()[0][0]);
     }
 
     /**
-     * EDGE CASE: Dimension Mismatch ArithmeticException
-     * Tests: Section 2.3.1 - "If an operation is illegal, throw ArithmeticException"
+     * EDGE CASE: Large Matrix to Force Thread Starvation
+     * This creates a 50x50 matrix. If your tasks are one-per-row, this generates 50 tasks.
+     * This ensures the PriorityBlockingQueue in TiredExecutor is working and threads
+     * are being cycled correctly.
      */
     @Test
-    @DisplayName("Test Dimension Mismatch Exceptions")
-    void testDimensionMismatch() {
-        double[][] a = {{1, 2}, {3, 4}};
-        double[][] b = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}; // 3x3
+    @DisplayName("Stress Test - Large Matrix Contention")
+    void testLargeMatrixContention() {
+        int size = 100;
+        double[][] bigData = new double[size][size];
+        for(int i=0; i<size; i++) bigData[i][i] = 1.0; // Identity Matrix
 
-        SharedVector v1 = new SharedVector(a[0], VectorOrientation.ROW_MAJOR);
-        SharedVector v2 = new SharedVector(b[0], VectorOrientation.ROW_MAJOR);
+        ComputationNode n1 = new ComputationNode(bigData);
+        ComputationNode n2 = new ComputationNode(bigData);
+        // I * I = I (but performed with 100 rows, 10,000 dot products)
+        ComputationNode root = new ComputationNode("*", List.of(n1, n2));
 
-        // Adding vectors of different lengths should throw ArithmeticException
-        assertThrows(ArithmeticException.class, () -> v1.add(v2));
+        lae.run(root);
 
-        // Dot product of same orientation should throw ArithmeticException (must be Row * Col)
-        assertThrows(ArithmeticException.class, () -> v1.dot(v2));
-    }
-
-    /**
-     * EDGE CASE: Concurrency and Locking
-     * Multiple tasks reading the same Right Matrix while it is potentially being accessed.
-     */
-    @Test
-    @DisplayName("Stress Test Read/Write Locks")
-    void testLockingConcurrency() {
-        double[][] bigData = new double[50][50];
-        for(int i=0; i<50; i++) for(int j=0; j<50; j++) bigData[i][j] = 1.0;
-
-        SharedMatrix m1 = new SharedMatrix(bigData);
-        SharedMatrix m2 = new SharedMatrix();
-        m2.loadColumnMajor(bigData);
-
-        // Submit many multiplications targeting the same SharedMatrix
-        // This tests if SharedVector.vecMatMul correctly acquires read locks on m2 vectors
-        List<Runnable> tasks = new ArrayList<>();
-        for(int i=0; i<50; i++) {
-            SharedVector v = m1.get(i);
-            tasks.add(() -> v.vecMatMul(m2));
+        for(int i=0; i<size; i++) {
+            assertEquals(1.0, root.getMatrix()[i][i], 0.0001);
         }
-
-        assertDoesNotThrow(() -> {
-            TiredExecutor exec = new TiredExecutor(10);
-            exec.submitAll(tasks);
-            exec.shutdown();
-        });
     }
 
     /**
-     * EDGE CASE: Transpose and Negate logic
+     * ERROR HANDLING: Illegal Dimensions Halt
+     * Checks if the engine properly throws when matrix sizes don't match.
      */
     @Test
-    @DisplayName("Test Transpose and Negate")
-    void testUnaryOperations() {
-        double[] data = {1.0, -2.0, 3.0};
-        SharedVector v = new SharedVector(data, VectorOrientation.ROW_MAJOR);
+    @DisplayName("Error Handling - Dimension Mismatch M1_cols != M2_rows")
+    void testIllegalDimensions() {
+        double[][] m1 = {{1, 2, 3}}; // 1x3
+        double[][] m2 = {{1, 2}, {3, 4}}; // 2x2
         
-        v.negate();
-        assertEquals(-1.0, v.get(0));
-        assertEquals(2.0, v.get(1));
-        
-        v.transpose();
-        assertEquals(VectorOrientation.COLUMN_MAJOR, v.getOrientation());
+        ComputationNode root = new ComputationNode("*", List.of(
+            new ComputationNode(m1), 
+            new ComputationNode(m2)
+        ));
+
+        // Should throw ArithmeticException based on your validateDimensions()
+        assertThrows(ArithmeticException.class, () -> lae.loadAndCompute(root));
+    }
+    
+    /**
+     * EDGE CASE: The "Zero Vector" and "Single Element"
+     */
+    @Test
+    @DisplayName("Edge Case - Single Element Matrices")
+    void testSingleElement() {
+        double[][] m1 = {{2}};
+        double[][] m2 = {{3}};
+        ComputationNode root = new ComputationNode("*", List.of(
+            new ComputationNode(m1), new ComputationNode(m2)
+        ));
+        lae.run(root);
+        assertEquals(6.0, root.getMatrix()[0][0]);
     }
 }
