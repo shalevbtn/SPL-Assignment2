@@ -120,7 +120,7 @@ public class LinearAlgebraEngineTest {
         List<ComputationNode> transposeChildren = new ArrayList<>();
         transposeChildren.add(negate);
         transpose = new ComputationNode("T", transposeChildren);
-        double[][] solve = new double[][] {{-15,-32},{-16,-33},{-17,-34}};
+        double[][] solve = new double[][] {{-15, -33}, {-17, -35}, {-26, -37}};
         ComputationNode root = transpose;
         lae.run(root);
         assertEquals(root.getMatrix().length, solve.length);
