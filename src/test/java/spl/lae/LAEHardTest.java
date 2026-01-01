@@ -93,10 +93,12 @@ public class LAEHardTest {
     @Test
     @DisplayName("Associative Nesting - Multi-operand Addition")
     void testAssociativeNesting() {
-        double[][] m = {{1}};
+        double[][] m;
         List<ComputationNode> children = new ArrayList<>();
-        for (int i = 0; i < 10; i++) children.add(new ComputationNode(m));
-        
+        for (int i = 0; i < 10; i++) {
+            m = new double[][] {{1}};
+            children.add(new ComputationNode(m));
+        } 
         // This will trigger computationNode.associativeNesting()
         ComputationNode root = new ComputationNode("+", children);
         
