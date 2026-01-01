@@ -131,4 +131,80 @@ public class LinearAlgebraEngineTest {
             }
         }
     }
+
+    @Test
+    void testAddThirtyChildren() {
+        int numChildren = 30;
+        int rows = 2;
+        int cols = 2;
+        List<ComputationNode> children = new ArrayList<>();
+
+        // יצירת 30 בנים - כל אחד הוא מטריצה של 1 על 1 (או גודל אחר לבחירתך) מלאה ב-1
+        for (int i = 0; i < numChildren; i++) {
+            double[][] data = new double[rows][cols];
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < cols; c++) {
+                    data[r][c] = 1.0;
+                }
+            }
+            children.add(new ComputationNode(data));
+        }
+
+        // יצירת ה-Node המרכזי מסוג חיבור
+        ComputationNode root = new ComputationNode("+", children);
+
+        // הרצה
+        lae.run(root);
+
+        // בדיקת התוצאה: כל תא אמור להיות שווה ל-30.0
+        double[][] result = root.getMatrix();
+        assertEquals(rows, result.length, "Number of rows should match");
+        assertEquals(cols, result[0].length, "Number of columns should match");
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                assertEquals(30.0, result[i][j], "Cell [" + i + "][" + j + "] should be 30.0");
+            }
+        }
+    }
+
+    @Test
+    void testAddThreeHundredChildren() {
+        int numChildren = 300;
+        int rows = 3;
+        int cols = 3;
+        double valuePerCell = 0.5;
+        double expectedValue = numChildren * valuePerCell; // 150.0
+
+        List<ComputationNode> children = new ArrayList<>();
+
+        // יצירת 300 בנים - כל אחד מכיל מטריצה 3x3 עם הערך 0.5
+        for (int i = 0; i < numChildren; i++) {
+            double[][] data = new double[rows][cols];
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < cols; c++) {
+                    data[r][c] = valuePerCell;
+                }
+            }
+            children.add(new ComputationNode(data));
+        }
+
+        // יצירת ה-Node המרכזי לחיבור 300 המטריצות
+        ComputationNode root = new ComputationNode("+", children);
+
+        // הרצת המנוע
+        lae.run(root);
+
+        // בדיקת התוצאות
+        double[][] result = root.getMatrix();
+        assertEquals(rows, result.length, "Rows mismatch");
+        assertEquals(cols, result[0].length, "Cols mismatch");
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                assertEquals(expectedValue, result[i][j], 0.0001,
+                        "Cell [" + i + "][" + j + "] should be " + expectedValue);
+            }
+        }
+    }
 }
