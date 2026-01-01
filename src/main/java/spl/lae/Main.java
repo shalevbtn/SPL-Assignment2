@@ -15,13 +15,14 @@ public class Main {
 		String inputPath = args[1];
 		String outputPath = args[2];
 
-		LinearAlgebraEngine LAE = new LinearAlgebraEngine(numOfThreads);
 		InputParser inputP = new InputParser();
 
 		try {
 			ComputationNode root = inputP.parse(inputPath);
+			LinearAlgebraEngine LAE = new LinearAlgebraEngine(numOfThreads);
 			root = LAE.run(root);
 			OutputWriter.write(root.getMatrix(), outputPath);
+       	 	System.out.println(LAE.getWorkerReport());
 
 		} catch (Exception e) {
 			OutputWriter.write(e.getMessage(), outputPath);

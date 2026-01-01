@@ -125,7 +125,7 @@ public class LinearAlgebraEngine {
 
     public List<Runnable> createTransposeTasks() {
         List<Runnable> ret = new LinkedList<>();
-        // TO CHECK
+
         for(int i = 0 ; i < leftMatrix.length(); i++) {
             SharedVector v = leftMatrix.get(i);
             ret.add(() -> v.transpose());

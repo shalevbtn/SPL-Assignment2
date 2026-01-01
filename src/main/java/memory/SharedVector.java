@@ -78,13 +78,12 @@ public class SharedVector {
         writeLock();
         other.readLock();
 
-        if (!this.orientation.equals(other.orientation) || vector.length != other.length()) {
-            writeUnlock();
-            other.readUnlock();
-            throw new ArithmeticException("Illegal operation: dimensions mismatch");
-        }
         try
         {
+            if (!this.orientation.equals(other.orientation) || vector.length != other.length()) {
+                throw new ArithmeticException("Illegal operation: dimensions mismatch");
+            }
+
             for (int i = 0; i < vector.length; i++)
                 vector[i] += other.vector[i];
         }
@@ -108,64 +107,55 @@ public class SharedVector {
         readLock();
         other.readLock();
 
-        if (this.orientation.equals(other.orientation) || vector.length != other.length()) {
-            throw new ArithmeticException("Illegal operation: dimensions mismatch");
-        }    
-
         double sum = 0;
 
-        try
-        {
+        try {
+            if (this.orientation.equals(other.orientation) || vector.length != other.length()) {
+                throw new ArithmeticException("Illegal operation: dimensions mismatch");
+            } 
+
             for (int i = 0; i < vector.length; i++) 
                 sum += vector[i] * other.vector[i];
             
+            return sum;
         }
         finally {
             readUnlock();
             other.readUnlock();
-        }
-
-        return sum;
+        }        
     }
 
     public void vecMatMul(SharedMatrix matrix) {
         writeLock();
+        
+        try {
+            if(this.orientation == VectorOrientation.COLUMN_MAJOR) {
+                throw new ArithmeticException("Illegal operation: dimensions mismatch");
+            }
 
-        if(this.orientation == VectorOrientation.COLUMN_MAJOR) {
-            writeUnlock();
-            throw new ArithmeticException("Illegal operation: dimensions mismatch");
-        }
+            if(matrix.length() == 0) { return; }
 
-        if(matrix.length() == 0) { return; }
+            SharedVector fstVecotr = matrix.get(0);
 
-        SharedVector fstVecotr = matrix.get(0);
+            if(fstVecotr.orientation == VectorOrientation.ROW_MAJOR) {
+                throw new ArithmeticException("Illegal operation: dimensions mismatch");
+            }
 
-        if(fstVecotr.orientation == VectorOrientation.ROW_MAJOR) {
-            writeUnlock();
-            throw new ArithmeticException("Illegal operation: dimensions mismatch");
-        }
+            if(length() != fstVecotr.length()) {
+                throw new ArithmeticException("Illegal operation: dimensions mismatch");
+            }
 
-        if(length() != fstVecotr.length()) {
-            writeUnlock();
-            throw new ArithmeticException("Illegal operation: dimensions mismatch");
-        }
+            double[] result = new double[matrix.length()];
 
-        double[] result = new double[matrix.length()];
 
-        /*for(int i = 0; i < matrix.length(); i++) {
-            matrix.get(i).readLock();
-        }*/
+            for(int i = 0; i < matrix.length(); i++) {
+                SharedVector currColumn = matrix.get(i);
+                result[i] = this.dot(currColumn);
+            }
 
-        for(int i = 0; i < matrix.length(); i++) {
-            SharedVector currColumn = matrix.get(i);
-            result[i] = this.dot(currColumn);
-        }
-
-        /*for(int i = 0; i < matrix.length(); i++) {
-            matrix.get(i).readUnlock();
-        }*/
-
-        vector = result;
-        writeUnlock();
+            vector = result;
+        } finally {writeUnlock();}
+        
+        
     }
 }

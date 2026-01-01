@@ -75,17 +75,28 @@ public class TiredExecutor {
 
     public synchronized String getWorkerReport() {
         StringBuilder report = new StringBuilder();
-
+        double sumFatigue = 0;
+        
         for (TiredThread worker : workers) {
+            double f = worker.getFatigue();
+            sumFatigue += f;
             report.append(String.format(
-                "Worker %d | Busy: %s | Time Used: %d ns | Time Idle: %d ns | Fatigue: %.2f%n",
+                "Worker %d | Time Used: %d ns | Time Idle: %d ns | Fatigue: %.2f%n",
                 worker.getWorkerId(),
-                worker.isBusy(),
                 worker.getTimeUsed(),
                 worker.getTimeIdle(),
-                worker.getFatigue()
+                f
             ));
         }
+
+        double avgFatigue = sumFatigue / workers.length;
+        double fairnessScore = 0;
+        for (TiredThread worker : workers) {
+            fairnessScore += Math.pow(worker.getFatigue() - avgFatigue, 2);
+        }
+
+        report.append(String.format("%nAverage Fatigue: %.2f%n", avgFatigue));
+        report.append(String.format("Fairness Score (Sum of Squared Deviations): %.2f%n", fairnessScore));
 
         return report.toString();
     }

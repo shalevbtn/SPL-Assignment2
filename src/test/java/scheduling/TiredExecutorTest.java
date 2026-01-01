@@ -21,10 +21,7 @@ public class TiredExecutorTest {
             executor.submit(task);
         }
 
-        // Shutdown and wait
         executor.shutdown();
-
-        // If shutdown works and join works, counter must be 5
         assertEquals(5, counter.get());
     }
 }
