@@ -19,9 +19,11 @@ public class LinearAlgebraEngine {
 
     public ComputationNode run(ComputationNode computationRoot) {
         try {
-            computationRoot.associativeNesting();
+            ComputationNode nodeToSolve = computationRoot;
             while(computationRoot.getNodeType() != ComputationNodeType.MATRIX) {
-                ComputationNode nodeToSolve = computationRoot.findResolvable();
+                nodeToSolve = computationRoot.findResolvable();
+                nodeToSolve.associativeNesting();
+                nodeToSolve = nodeToSolve.findResolvable();
                 loadAndCompute(nodeToSolve);
             }
 
@@ -36,6 +38,9 @@ public class LinearAlgebraEngine {
     }
 
     public void loadAndCompute(ComputationNode node) {
+        if (node.getChildren().size() == 0 || node.getChildren().size() > 2) {
+            throw new IllegalArgumentException();
+        }
         List<Runnable> tasks;
         leftMatrix.loadRowMajor(node.getChildren().get(0).getMatrix());
         validateMatrix(leftMatrix);
@@ -43,6 +48,9 @@ public class LinearAlgebraEngine {
         ComputationNodeType type = node.getNodeType();
         switch (type) {
             case ADD:
+                if (node.getChildren().size() != 2) {
+                    throw new IllegalArgumentException();
+                }
                 rightMatrix.loadRowMajor(node.getChildren().get(1).getMatrix());
                 validateMatrix(rightMatrix);
                 validateAdd();
@@ -52,6 +60,9 @@ public class LinearAlgebraEngine {
                 break;
 
             case MULTIPLY:
+                if (node.getChildren().size() != 2) {
+                    throw new IllegalArgumentException();
+                }
                 rightMatrix.loadColumnMajor(node.getChildren().get(1).getMatrix());
                 validateMatrix(rightMatrix);
                 validateDimensions();
@@ -60,10 +71,16 @@ public class LinearAlgebraEngine {
                 break;
 
             case NEGATE:
+                if (node.getChildren().size() != 1) {
+                    throw new IllegalArgumentException();
+                }
                 tasks = createNegateTasks();
                 break;
 
             case TRANSPOSE:
+                if (node.getChildren().size() != 1) {
+                    throw new IllegalArgumentException();
+                }
                 tasks = createTransposeTasks();
                 break;
             default:
